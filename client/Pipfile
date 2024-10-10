@@ -4,11 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask = "*"
-opencv-python-headless = "*"
-flask-cors = "*"
-python-dotenv = "*"
-shapely = "*"
 
 [dev-packages]
 

@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import '@/assets/styles/home.css';
+import Editor from '@monaco-editor/react';
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null); // To store and display image URL
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [positions, setPositions] = useState("");
+  const [loading, setLoading] = useState(false); // State for loading
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
@@ -23,25 +26,20 @@ function App() {
     return allowedTypes.includes(file.type);
   };
 
-  const handleSubmit = async () => {
-    if (!selectedFile) {
-      alert('Please select a file first!');
-      return;
-    }
-
+  const handleDetection = async () => {
     const formData = new FormData();
-    formData.append('image', selectedFile);
+    formData.append('image', selectedFile!);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/backgammon/parse`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/backgammon/detect`, {
         method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
-        const blob = await response.blob(); // Get the image blob
-        const imageUrl = URL.createObjectURL(blob); // Create a URL for the blob
-        setImageUrl(imageUrl); // Set the image URL to display it
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        setImageUrl(imageUrl);
       } else {
         alert('Failed to upload image.');
       }
@@ -51,19 +49,75 @@ function App() {
     }
   };
 
+  const handleParsing = async () => {
+    const formData = new FormData();
+    formData.append('image', selectedFile!);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/backgammon/parse`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setPositions(JSON.stringify(result.positions, null, 2));
+      } else {
+        alert('Failed to upload image.');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('An error occurred while uploading the file.');
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedFile) {
+      alert('Please select a file first!');
+      return;
+    }
+
+    setLoading(true); // Set loading to true when the request starts
+
+    try {
+      await Promise.all([handleDetection(), handleParsing()]);
+    } finally {
+      setLoading(false); // Set loading to false when the request completes
+    }
+  };
+
   return (
     <>
       <div className="home">
         <input type="file" accept="image/*" onChange={handleFileChange} />
         {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button onClick={handleSubmit} disabled={!selectedFile}>Upload Image</button>
-        
-        {/* Display the image here */}
-        {imageUrl && (
+
+        {/* Button with loading state */}
+        <button onClick={handleSubmit} disabled={!selectedFile || loading}>
+          {loading ? 'Loading...' : 'Upload Image'}
+        </button>
+
+        {/* Display the image */}
+        {imageUrl && !loading && (
           <div>
             <h3>Detected Image:</h3>
             <img src={imageUrl} alt="Detected result" />
           </div>
+        )}
+
+        {!!positions.length && !loading && (
+          <Editor
+            height="400px"
+            defaultLanguage="json"
+            value={positions}
+            onChange={(value) => setPositions(value || '')}
+            theme="vs-dark"
+            options={{
+              automaticLayout: true,
+              formatOnType: true,
+              formatOnPaste: true,
+            }}
+          />
         )}
       </div>
     </>
