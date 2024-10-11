@@ -139,3 +139,6 @@ def detect_objects():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+def hint():
+    return None
