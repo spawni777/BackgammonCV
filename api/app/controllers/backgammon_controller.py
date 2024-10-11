@@ -63,10 +63,10 @@ def parse_image():
             backgammon_cv = BackgammonCV()
 
             # Get the checker positions
-            positions = backgammon_cv.get_checker_positions(image, points_homography)
+            checker_positions, dices = backgammon_cv.get_game_data(image, points_homography)
 
             # Return the positions as a JSON response
-            return jsonify({"positions": positions}), 200
+            return jsonify({"checker_positions": checker_positions, "dices": dices}), 200
         else:
             return jsonify({"error": "Unable to detect the game board."}), 400
 

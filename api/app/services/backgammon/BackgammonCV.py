@@ -1,4 +1,6 @@
 # Importing the necessary modules
+from ...services.backgammon.BoardPosition import BoardPosition
+from ...services.backgammon.Dice import Dice
 from ...services.backgammon.Board import Board
 from ...services.backgammon.Color import Color
 from ...services.backgammon.Detector import Detector
@@ -44,7 +46,7 @@ class BackgammonCV:
             (0, self.template_height),
         ]
 
-    def get_checker_positions(self, image, points_homography):
+    def get_game_data(self, image, points_homography):
         """
         Given an image and 4 corners of the board, returns the positions of the checkers on the board.
 
@@ -88,9 +90,9 @@ class BackgammonCV:
         self.template_aligned = True
 
         # Now perform detection
-        positions = self.detect(image)
+        checker_positions, dices = self.detect(image)
 
-        return positions
+        return checker_positions, dices
 
     def detect(self, image):
         if not self.template_aligned:
@@ -124,7 +126,20 @@ class BackgammonCV:
                 )
                 self.board.addDisk(newDisk)
 
-        positions = {str(i): [] for i in range(1, 25)}  # Dictionary to hold the results
+            # DICE
+            if self.detector.class_numbers[i] < Class.DISKS:
+                newDice = Dice(self.detector.class_numbers[i], self.detector.centers[i], self.detector.confidences[i])
+
+                # Dice position binarization
+                if newDice.center[0] >= self.board.getBar().bbox_warped[0][0][0]:
+                    newDice.board_position = BoardPosition.RIGHT
+                else:
+                    newDice.board_position = BoardPosition.LEFT
+
+                self.board.addDice(newDice)
+
+        # Checkers positions --------------------------------------------------------------
+        checker_positions = {str(i): [] for i in range(1, 25)}  # Dictionary to hold the results
 
         # Loop through each point on the board
         for index, point in enumerate(self.board.points):
@@ -136,9 +151,12 @@ class BackgammonCV:
                 checker_label = "player_1" if disk.color == Color.WHITE else "player_2"
 
                 # Add the checker label to the corresponding position
-                positions[position].append(checker_label)
+                checker_positions[position].append(checker_label)
 
-        return positions
+        # Dices --------------------------------------------------------------
+        dices = [{"value": int(dice.value), "confidence": float(dice.confidence)} for dice in self.board.dices]
+
+        return checker_positions, dices
 
     def pointInPoly(self, point, polygon):
         """

@@ -6,7 +6,7 @@ function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [positions, setPositions] = useState("");
+  const [gameData, setGameData] = useState("");
   const [loading, setLoading] = useState(false); // State for loading
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +61,7 @@ function App() {
 
       if (response.ok) {
         const result = await response.json();
-        setPositions(JSON.stringify(result.positions, null, 2));
+        setGameData(JSON.stringify(result, null, 2));
       } else {
         alert('Failed to upload image.');
       }
@@ -105,12 +105,12 @@ function App() {
           </div>
         )}
 
-        {!!positions.length && !loading && (
+        {!!gameData.length && !loading && (
           <Editor
             height="400px"
             defaultLanguage="json"
-            value={positions}
-            onChange={(value) => setPositions(value || '')}
+            value={gameData}
+            onChange={(value) => setGameData(value || '')}
             theme="vs-dark"
             options={{
               automaticLayout: true,
