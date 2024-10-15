@@ -6,8 +6,9 @@ function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [gameData, setGameData] = useState("");
-  const [loading, setLoading] = useState(false); // State for loading
+  const [gameData, setGameData] = useState<string>("");
+  const [hints, setHints] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
@@ -29,6 +30,8 @@ function App() {
   const handleDetection = async () => {
     const formData = new FormData();
     formData.append('image', selectedFile!);
+    setGameData("");
+    setHints("");
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/backgammon/detect`, {
@@ -52,7 +55,8 @@ function App() {
   const handleParsing = async () => {
     const formData = new FormData();
     formData.append('image', selectedFile!);
-
+    setHints("");
+    
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/backgammon/parse`, {
         method: 'POST',
@@ -71,19 +75,45 @@ function App() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleGetHints = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/backgammon/hint`, {
+        method: 'POST',
+        body: gameData,
+        headers: {
+          "content-type": "application/json"
+        }
+      });
+
+      if (response.ok) {
+        const hints = await response.json();
+        setHints(JSON.stringify(hints, null, 2));
+      } else {
+        alert('Failed to get hints.');
+      }
+    } catch (error) {
+      console.error('Error getting hints:', error);
+      alert('An error occurred while getting hints.');
+    }
+  };
+
+  const onSubmit = async () => {
     if (!selectedFile) {
       alert('Please select a file first!');
       return;
     }
 
-    setLoading(true); // Set loading to true when the request starts
+    setLoading(true);
 
     try {
       await Promise.all([handleDetection(), handleParsing()]);
     } finally {
-      setLoading(false); // Set loading to false when the request completes
+      setLoading(false);
     }
+  };
+
+  const onGetHints = async () => {
+    await handleGetHints();
   };
 
   return (
@@ -92,12 +122,10 @@ function App() {
         <input type="file" accept="image/*" onChange={handleFileChange} />
         {error && <p style={{ color: 'red' }}>{error}</p>}
 
-        {/* Button with loading state */}
-        <button onClick={handleSubmit} disabled={!selectedFile || loading}>
+        <button onClick={onSubmit} disabled={!selectedFile || loading}>
           {loading ? 'Loading...' : 'Upload Image'}
         </button>
 
-        {/* Display the image */}
         {imageUrl && !loading && (
           <div>
             <h3>Detected Image:</h3>
@@ -106,11 +134,29 @@ function App() {
         )}
 
         {!!gameData.length && !loading && (
+          <>
+            <Editor
+              height="400px"
+              defaultLanguage="json"
+              value={gameData}
+              onChange={(value) => setGameData(value || '')}
+              theme="vs-dark"
+              options={{
+                automaticLayout: true,
+                formatOnType: true,
+                formatOnPaste: true,
+              }}
+            />
+            <button onClick={onGetHints} disabled={loading}>
+              {loading ? 'Loading...' : 'Get hints'}
+            </button></>
+        )}
+        {hints && !loading && (
           <Editor
             height="400px"
             defaultLanguage="json"
-            value={gameData}
-            onChange={(value) => setGameData(value || '')}
+            value={hints}
+            onChange={(value) => setHints(value || '')}
             theme="vs-dark"
             options={{
               automaticLayout: true,

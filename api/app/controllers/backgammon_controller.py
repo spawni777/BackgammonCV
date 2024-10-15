@@ -2,6 +2,9 @@ from flask import request, jsonify, send_file
 import cv2
 import numpy as np
 import io
+import subprocess
+import re
+import random
 from ..utils.resize_and_pad_image import resize_and_pad_image
 from ..utils.filter_and_get_largest_rectangle import filter_and_get_largest_rectangle
 from ..services.backgammon.BackgammonCV import BackgammonCV
@@ -64,6 +67,12 @@ def parse_image():
 
             # Get the checker positions
             checker_positions, dices = backgammon_cv.get_game_data(image, points_homography)
+
+            if not dices or len(dices) < 2:
+                dices = [
+                    {"value": random.randint(1, 6), "randomized": True},
+                    {"value": random.randint(1, 6), "randomized": True}
+                ]
 
             # Return the positions as a JSON response
             return jsonify({"checker_positions": checker_positions, "dices": dices}), 200
@@ -139,3 +148,79 @@ def detect_objects():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+def convert_checker_positions(checker_positions):
+    board = [0] * 25
+
+    for position, checkers in checker_positions.items():
+        pos_index = int(position)
+
+        if checkers:
+            if checkers[0] == 'player_1':
+                board[pos_index] = len(checkers)
+            elif checkers[0] == 'player_2':
+                board[pos_index] = -len(checkers)
+
+    return board
+
+def get_suggested_moves(board_position, dice_rolls):
+    script_content = f"""
+import gnubg
+
+gnubg.command('new match')
+
+board = {board_position}
+gnubg.command(f"set board simple {{' '.join(map(str, board))}}")
+
+gnubg.command(f"set dice {dice_rolls[0]} {dice_rolls[1]}")
+
+gnubg.command("hint")
+    """
+
+    script_path = '/tmp/get_moves.py'
+    with open(script_path, 'w') as script_file:
+        script_file.write(script_content)
+
+    result = subprocess.run(['/usr/games/gnubg', '-p', script_path, '-q'], capture_output=True, text=True)
+
+    return result.stdout
+
+def parse_gnubg_output(output):
+    lines = output.splitlines()
+    
+    hints = []
+    capture_hints = False
+
+    dice_regex = re.compile(r'The dice have been set to')
+    hint_regex = re.compile(r'^\s*\d+\.\s+([^\d\s].*?)?$')
+    
+    for line in lines:
+        dice_match = dice_regex.match(line)
+        if dice_match:
+            capture_hints = True
+            continue
+
+        if capture_hints:
+            hint_match = hint_regex.match(line)
+            if hint_match:
+                hint_description = hint_match.group(1).strip()
+                hints.append(hint_description)
+    
+    return hints
+
+def hint():
+    data = request.json
+    checker_positions = data.get('checker_positions')
+    dice_data = data.get('dices')
+
+    if not checker_positions or not dice_data:
+        return jsonify({"error": "Checker positions and dice rolls are required"}), 400
+
+    dice_rolls = [dice['value'] for dice in dice_data]
+
+    board_position = convert_checker_positions(checker_positions)
+
+    output = get_suggested_moves(board_position, dice_rolls)
+    suggested_moves = parse_gnubg_output(output)
+    
+    return jsonify(suggested_moves), 200

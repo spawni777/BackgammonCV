@@ -12,6 +12,6 @@ export default defineConfig({
   },
   server: {
     port: parseInt(process?.env?.VITE_PORT || "8000"),  // Load port from .env or default to 8000
-    host: true
+    host: '0.0.0.0'
   },
 })

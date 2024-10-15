@@ -10,3 +10,7 @@ def parse_image():
 @bp.route('/detect', methods=['POST'])
 def detect():
     return backgammon_controller.detect_objects()
+
+@bp.route('/hint', methods=['POST'])
+def hint():
+    return backgammon_controller.hint()
