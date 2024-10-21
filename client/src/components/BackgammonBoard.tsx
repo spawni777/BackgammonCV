@@ -32,10 +32,12 @@ const getX = (index: number, width: number, barWidth: number) => {
 
 const BackgammonBoard = ({
   gameData,
-  onMoveChecker,
+  onMoveChecker = () => {},
+  readOnly = false,
 }: {
   gameData: IGameData;
-  onMoveChecker: (updatedCheckerPositions: ICheckerPositions) => void;
+  onMoveChecker?: (updatedCheckerPositions: ICheckerPositions) => void;
+  readOnly?: boolean;
 }) => {
   const { checkerPositions } = gameData;
 
@@ -125,16 +127,18 @@ const BackgammonBoard = ({
           originX: "center",
           stroke: "#000",
           strokeWidth: 1 / aspectRatio,
-          selectable: true,
+          selectable: !readOnly, // Disable movement if readOnly is true
           data: player,
         });
 
-        checker.on("moving", () =>
-          snapToGrid(checker, barWidth, checkerRadius)
-        );
-        checker.on("modified", () =>
-          updateCheckerPosition(checker, boardIndex, index, barWidth)
-        );
+        if (!readOnly) {
+          checker.on("moving", () =>
+            snapToGrid(checker, barWidth, checkerRadius)
+          );
+          checker.on("modified", () =>
+            updateCheckerPosition(checker, boardIndex, index, barWidth)
+          );
+        }
 
         canvas.add(checker);
       });

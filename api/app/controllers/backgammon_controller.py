@@ -5,6 +5,8 @@ import io
 import subprocess
 import re
 import random
+
+from ..db.BackgammonGameRepository import BackgammonRepository
 from ..utils.resize_and_pad_image import resize_and_pad_image
 from ..utils.filter_and_get_largest_rectangle import filter_and_get_largest_rectangle
 from ..services.backgammon.BackgammonCV import BackgammonCV
@@ -150,10 +152,15 @@ def detect_objects():
         return jsonify({"error": str(e)}), 500
 
 def convert_checker_positions(checker_positions):
-    board = [0] * 25
+    board = [0] * 26
 
     for position, checkers in checker_positions.items():
         pos_index = int(position)
+
+        # Temp zeros (we need to detect bar checkers later, now the first element and the last element are zeros)
+        if pos_index == 0 | pos_index == 25:
+            board[pos_index] = 0
+            continue
 
         if checkers:
             if checkers[0] == 'player_1':
@@ -224,9 +231,27 @@ def hint():
         
     dice_rolls = [dice['value'] for dice in dice_data]
 
-    board_position = convert_checker_positions(checker_positions)
+    checker_position = convert_checker_positions(checker_positions)
 
-    output = get_suggested_moves(board_position, dice_rolls)
+    repository = BackgammonRepository()
+    repository.update(checker_position, dice_rolls)
+
+    output = get_suggested_moves(checker_position, dice_rolls)
     suggested_moves = parse_gnubg_output(output)
+
     
     return jsonify(suggested_moves), 200
+
+def get_saved_game_data():
+    repository = BackgammonRepository()
+    checker_position, dices  = repository.get()
+    repository.close()
+
+    return jsonify({"checker_position": checker_position, "dices": dices}), 200
+
+def delete_saved_game_data():
+    repository = BackgammonRepository()
+    repository.delete()
+    repository.close()
+
+    return jsonify({"success": True}), 200

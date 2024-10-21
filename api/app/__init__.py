@@ -1,5 +1,12 @@
 from flask import Flask
 from flask_cors import CORS
+from flask_socketio import SocketIO
+# import eventlet
+
+# eventlet.monkey_patch()  # Patches to ensure async handling
+
+# Initialize the SocketIO instance (with CORS support)
+socketio = SocketIO(cors_allowed_origins="*")  # Adjust as needed for specific origins
 
 def create_app():
     app = Flask(__name__)
@@ -20,5 +27,8 @@ def create_app():
     # Register template routes
     from .routes import template_routes
     app.register_blueprint(template_routes.bp)
+
+    # Initialize the app with SocketIO  
+    socketio.init_app(app)
 
     return app

@@ -3,8 +3,10 @@ import Webcam from "react-webcam";
 import { base64ToBlob } from "../utils";
 
 const PIXEL_SCORE_THRESHOLD = 20;
-const MOTION_SCORE_THRESHOLD = 75;
+const MOTION_SCORE_THRESHOLD = 25;
 const PIXEL_SKIP = 10;
+const SCREENSHOT_WIDTH = 640;
+const SCREENSHOT_HEIGHT = 480;
 
 const WebcamCapture = ({ onCapture }: { onCapture?: (file: File) => void }) => {
   const webcamRef = useRef<Webcam>(null);
@@ -24,8 +26,8 @@ const WebcamCapture = ({ onCapture }: { onCapture?: (file: File) => void }) => {
   const captureScreenshot = async () => {
     if (webcamRef.current) {
       const screenshot = webcamRef.current.getScreenshot({
-        width: 640,
-        height: 480,
+        width: SCREENSHOT_WIDTH,
+        height: SCREENSHOT_HEIGHT,
       });
 
       if (screenshot) {

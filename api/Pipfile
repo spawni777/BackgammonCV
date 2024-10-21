@@ -9,6 +9,7 @@ opencv-python-headless = "*"
 flask-cors = "*"
 python-dotenv = "*"
 shapely = "*"
+flask-socketio = "*"
 
 [dev-packages]
 
