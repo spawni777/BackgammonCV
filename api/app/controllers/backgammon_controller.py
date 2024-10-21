@@ -75,7 +75,7 @@ def parse_image():
                 ]
 
             # Return the positions as a JSON response
-            return jsonify({"checker_positions": checker_positions, "dices": dices}), 200
+            return jsonify({"checkerPositions": checker_positions, "dices": dices}), 200
         else:
             return jsonify({"error": "Unable to detect the game board."}), 400
 
@@ -210,12 +210,18 @@ def parse_gnubg_output(output):
 
 def hint():
     data = request.json
-    checker_positions = data.get('checker_positions')
+    checker_positions = data.get('checkerPositions')
     dice_data = data.get('dices')
 
-    if not checker_positions or not dice_data:
-        return jsonify({"error": "Checker positions and dice rolls are required"}), 400
+    if not checker_positions:
+        return jsonify({"error": "Checker positions are required"}), 400
 
+    if not dice_data or len(dice_data) < 2:
+        dice_data = [
+            {"value": random.randint(1, 6), "randomized": True},
+            {"value": random.randint(1, 6), "randomized": True}
+        ]
+        
     dice_rolls = [dice['value'] for dice in dice_data]
 
     board_position = convert_checker_positions(checker_positions)

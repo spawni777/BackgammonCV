@@ -3,7 +3,7 @@ import Webcam from "react-webcam";
 import { base64ToBlob } from "../utils";
 
 const PIXEL_SCORE_THRESHOLD = 20;
-const MOTION_SCORE_THRESHOLD = 5000;
+const MOTION_SCORE_THRESHOLD = 75;
 const PIXEL_SKIP = 10;
 
 const WebcamCapture = ({ onCapture }: { onCapture?: (file: File) => void }) => {
@@ -96,7 +96,9 @@ const WebcamCapture = ({ onCapture }: { onCapture?: (file: File) => void }) => {
         }
       }
 
-      setIsMotionDetected(motionPixelCount > MOTION_SCORE_THRESHOLD);
+      console.log(motionPixelCount);
+
+      setIsMotionDetected(motionPixelCount > width * MOTION_SCORE_THRESHOLD);
 
       const motionImageData = new ImageData(motionPixels, width, height);
 
@@ -131,7 +133,9 @@ const WebcamCapture = ({ onCapture }: { onCapture?: (file: File) => void }) => {
 
   return (
     <div className="flex flex-col gap-2 p-2 w-full border border-base-content rounded-xl items-center overflow-hidden">
-      <button className="btn btn-success" onClick={captureScreenshot}>Manual capture</button>
+      <button className="btn btn-success" onClick={captureScreenshot}>
+        Manual capture
+      </button>
       <div className="flex gap-2 w-full justify-around">
         <div className="flex flex-col gap-2 max-w-[50%] items-center overflow-hidden">
           <span>Current video</span>
@@ -146,18 +150,17 @@ const WebcamCapture = ({ onCapture }: { onCapture?: (file: File) => void }) => {
               onUserMedia={() => setReady(true)}
             />
             <canvas className="absolute inset-0" ref={motionCanvasRef}></canvas>
-            {errorMessage ?
+            {errorMessage ? (
               <span className="text-error self-center">{errorMessage}</span>
-              : (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2">
-                  {isMotionDetected ? (
-                    <span className="text-warning">Motion Detected!</span>
-                  ) : (
-                    <span>No Motion</span>
-                  )}
-                </div>
-              )
-            }
+            ) : (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2">
+                {isMotionDetected ? (
+                  <span className="text-warning">Motion Detected!</span>
+                ) : (
+                  <span>No Motion</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex flex-col gap-2 max-w-[50%] items-center overflow-hidden">

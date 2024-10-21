@@ -1,5 +1,9 @@
+export interface ICheckerPositions {
+  [boardIndex: string]: string[];
+}
+
 export interface IGameData {
-  checker_positions: { [fiels: string]: string[] };
+  checkerPositions: ICheckerPositions;
   dices: {
     value: number;
     randomized: boolean;
