@@ -13,6 +13,7 @@ const useBackgammonSocket = () => {
     setSocket(newSocket);
 
     newSocket.on('game_data', (newGameData: IGameData) => {
+      console.log(newGameData);
       setGameData(newGameData);
     });
 

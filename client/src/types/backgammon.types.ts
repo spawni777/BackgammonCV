@@ -8,4 +8,5 @@ export interface IGameData {
     value: number;
     randomized: boolean;
   }[];
+  currentPlayer?: string;
 }

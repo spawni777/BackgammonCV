@@ -21,7 +21,7 @@ def hint():
     game_data, status_code = backgammon_controller.get_saved_game_data()
 
     if status_code == 200:
-        formatted_data = format_repo_game_data(game_data.json)
+        formatted_data = format_repo_game_data(game_data.json['checker_position'], game_data.json['dices'], game_data.json['current_player'])
         socketio.emit('game_data', formatted_data)
 
     return response
@@ -39,5 +39,5 @@ def handle_connect(auth):
     game_data, status_code = backgammon_controller.get_saved_game_data()
 
     if status_code == 200:
-        formatted_data = format_repo_game_data(game_data.json)
+        formatted_data = format_repo_game_data(game_data.json['checker_position'], game_data.json['dices'], game_data.json['current_player'])
         socketio.emit('game_data', formatted_data)

@@ -1,13 +1,11 @@
 import random
 
-def format_repo_game_data(data):
-    checker_positions = data['checker_position']
-    dices = data['dices']
-    
+def format_repo_game_data(checker_positions, dices, current_player = "player_1"):
     # Initialize the result dictionary
     result = {
         "checkerPositions": {},
-        "dices": []
+        "dices": [],
+        "currentPlayer": current_player,
     }
     
     # Transform checker positions

@@ -229,25 +229,25 @@ def hint():
             {"value": random.randint(1, 6), "randomized": True}
         ]
         
-    dice_rolls = [dice['value'] for dice in dice_data]
+    dice_values = [dice['value'] for dice in dice_data]
 
     checker_position = convert_checker_positions(checker_positions)
 
     repository = BackgammonRepository()
-    repository.update(checker_position, dice_rolls)
+    repository.update(new_positions=checker_position, dice_values=dice_values)
 
-    output = get_suggested_moves(checker_position, dice_rolls)
+    output = get_suggested_moves(checker_position, dice_values)
     suggested_moves = parse_gnubg_output(output)
-
     
     return jsonify(suggested_moves), 200
 
 def get_saved_game_data():
     repository = BackgammonRepository()
-    checker_position, dices  = repository.get()
+    checker_position, dices, current_player = repository.get()
+
     repository.close()
 
-    return jsonify({"checker_position": checker_position, "dices": dices}), 200
+    return jsonify({ "checker_position": checker_position, "dices": dices, "current_player": current_player }), 200
 
 def delete_saved_game_data():
     repository = BackgammonRepository()

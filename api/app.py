@@ -7,4 +7,4 @@ if __name__ == '__main__':
     app = create_app()
 
     # app.run(debug=True, port=port, host="0.0.0.0")
-    socketio.run(app, port=port, host='0.0.0.0')
+    socketio.run(app, port=port, host='0.0.0.0', allow_unsafe_werkzeug=True)
