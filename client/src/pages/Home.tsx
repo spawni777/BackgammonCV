@@ -11,7 +11,7 @@ const Home = () => {
           <h1 className="text-[40px] mb-2">Client Side</h1>
           <h2 className="mb-2">Current player turn: {gameData.currentPlayer}</h2>
           <div className="flex w-2/4">
-            <BackgammonBoard readOnly={true} gameData={gameData} />
+            <BackgammonBoard readOnly={true} gameData={gameData} showDices={true} />
           </div>
         </div> 
       )}

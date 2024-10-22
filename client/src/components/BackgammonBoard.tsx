@@ -34,10 +34,12 @@ const BackgammonBoard = ({
   gameData,
   onMoveChecker = () => {},
   readOnly = false,
+  showDices = false,
 }: {
   gameData: IGameData;
   onMoveChecker?: (updatedCheckerPositions: ICheckerPositions) => void;
   readOnly?: boolean;
+  showDices?: boolean;
 }) => {
   const { checkerPositions } = gameData;
 
@@ -145,6 +147,79 @@ const BackgammonBoard = ({
     }
   };
 
+  const renderDices = () => {
+    const canvas = fabricRef.current;
+    if (!canvas) return;
+
+    const { width, height } = boardSize;
+
+    const diceSize = width / 20; // Adjust as needed
+
+    if (!gameData.dices || gameData.dices.length === 0) {
+      // No dice to render
+      return;
+    }
+
+    const totalDice = gameData.dices.length;
+    const totalWidth = totalDice * diceSize + (totalDice - 1) * 10;
+
+    // Determine starting X position based on currentPlayer
+    let startX;
+    const margin = width / 5.9;
+    const diceY = height / 2 - diceSize / 2;
+
+    if (!gameData.currentPlayer) {
+      // Center the dice
+      startX = (width - totalWidth) / 2;
+    } else if (gameData.currentPlayer === "player_1") {
+      // Position dice on the right side
+      startX = width - totalWidth - margin;
+    } else {
+      // Position dice on the left side
+      startX = margin;
+    }
+
+    gameData.dices.forEach((dice, index) => {
+      const diceX = startX + index * (diceSize + 10);
+
+      // Draw dice rectangle
+      const diceRect = new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: diceSize,
+        height: diceSize,
+        fill: "white",
+        stroke: "black",
+        strokeWidth: 2,
+        originX: "center",
+        originY: "center",
+        selectable: false,
+      });
+
+      // Draw dice value
+      const diceText = new fabric.Text(dice.value.toString(), {
+        left: 0,
+        top: 0,
+        fontSize: diceSize / 2,
+        originX: "center",
+        originY: "center",
+        selectable: false,
+      });
+
+      // Group dice
+      const diceGroup = new fabric.Group([diceRect, diceText], {
+        left: diceX + diceSize / 2,
+        top: diceY + diceSize / 2,
+        originX: "center",
+        originY: "center",
+        selectable: false,
+      });
+
+      // Add to canvas
+      canvas.add(diceGroup);
+    });
+  };
+
   const snapToGrid = (
     checker: fabric.Circle,
     barWidth: number,
@@ -222,10 +297,14 @@ const BackgammonBoard = ({
     renderBoard();
     renderCheckers();
 
+    if (showDices) {
+      renderDices();
+    }
+
     return () => {
       canvasElement.dispose();
     };
-  }, [checkerPositions, boardSize]);
+  }, [gameData, boardSize, showDices]);
 
   useEffect(() => {
     if (!canvasRef.current) return;

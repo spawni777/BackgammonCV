@@ -13,9 +13,11 @@ import {
   setHints,
 } from "../reducers/backgammon.slice";
 import BackgammonBoard from "../components/BackgammonBoard";
-import { ICheckerPositions } from "../types/backgammon.types";
+import { ICheckerPositions, IGameData } from "../types/backgammon.types";
+import useBackgammonSocket from "../hooks/useBackgammonSocket";
 
 const Admin = () => {
+  const backgammonSocket = useBackgammonSocket();
   const dispatch = useAppDispatch();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -98,6 +100,11 @@ const Admin = () => {
   };
 
   useEffect(() => {
+    if (gameData.currentPlayer !== backgammonSocket.gameData?.currentPlayer)
+    dispatch(setGameData({ ...gameData, currentPlayer: backgammonSocket.gameData?.currentPlayer }));
+  }, [backgammonSocket.gameData]);
+
+  useEffect(() => {
     handleGetHint();
   }, [gameData]);
 
@@ -121,9 +128,11 @@ const Admin = () => {
                 </div>
                 <div className="flex flex-col gap-2 max-w-[33%] w-1/3 h-full">
                   <span>Current state:</span>
+                  <span>Player turn: {gameData.currentPlayer}</span>
                   <BackgammonBoard
                     gameData={gameData}
                     onMoveChecker={handleMoveCheckers}
+                    showDices={true}
                   />
                 </div>
                 <div className="flex flex-col gap-2 w-1/3 h-full">
