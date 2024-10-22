@@ -12,6 +12,7 @@ const initialState: BackgammonState = {
   gameData: {
     checkerPositions: generateStartPosition(),
     dices: [],
+    currentPlayer: undefined,
   },
   hints: [],
 };

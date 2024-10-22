@@ -1,5 +1,3 @@
-import random
-
 def format_repo_game_data(checker_positions, dices, current_player = "player_1"):
     # Initialize the result dictionary
     result = {
@@ -20,7 +18,7 @@ def format_repo_game_data(checker_positions, dices, current_player = "player_1")
     # Transform dice values with a dummy confidence score
     for dice in dices:
         result["dices"].append({
-            "confidence": random.uniform(0.9, 1.0),  # You can replace this with actual confidence
+            "confidence": 1,
             "value": dice
         })
 

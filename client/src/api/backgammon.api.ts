@@ -47,10 +47,10 @@ export const backgammonApi = createApi({
         signal,
       }),
     }),
-    getBoardPosition: builder.query<IGameData, void>({
+    deleteGameData: builder.query<{body: {success: boolean;}}, void>({
       query: () => ({
         url: "/game-data",
-        method: "GET",
+        method: "DELETE",
       }),
     }),
   }),
@@ -61,5 +61,5 @@ export const {
   useDetectBoardMutation,
   useParseBoardMutation,
   useGetHintsMutation,
-  useGetBoardPositionQuery,
+  useDeleteGameDataQuery,
 } = backgammonApi;

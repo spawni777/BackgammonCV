@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import WebcamCapture from "../components/WebcamCapture";
 import {
+  useDeleteGameDataQuery,
   useDetectBoardMutation,
   useGetHintsMutation,
   useParseBoardMutation,
@@ -15,6 +16,7 @@ import {
 import BackgammonBoard from "../components/BackgammonBoard";
 import { ICheckerPositions, IGameData } from "../types/backgammon.types";
 import useBackgammonSocket from "../hooks/useBackgammonSocket";
+import { generateStartPosition } from "../utils";
 
 const Admin = () => {
   const backgammonSocket = useBackgammonSocket();
@@ -30,6 +32,7 @@ const Admin = () => {
   const [detectBoard] = useDetectBoardMutation();
   const [parseBoard] = useParseBoardMutation();
   const [getHints] = useGetHintsMutation();
+  const { refetch: deleteGameData } = useDeleteGameDataQuery();
 
   const detectionAbortControllerRef = useRef<AbortController | null>(null);
   const parseAbortControllerRef = useRef<AbortController | null>(null);
@@ -99,12 +102,25 @@ const Admin = () => {
     dispatch(setGameData({ ...gameData, checkerPositions }));
   };
 
+  const handleGameDataDeletion = async () => {
+    await deleteGameData();
+    dispatch(setGameData({
+      checkerPositions: generateStartPosition(), 
+      dices: [],
+      currentPlayer: undefined,
+    }));
+
+    alert('Game Data were deleted successfully');
+  }
+
   useEffect(() => {
     if (gameData.currentPlayer !== backgammonSocket.gameData?.currentPlayer)
     dispatch(setGameData({ ...gameData, currentPlayer: backgammonSocket.gameData?.currentPlayer }));
   }, [backgammonSocket.gameData]);
 
   useEffect(() => {
+    if (!gameData.dices) return;
+
     handleGetHint();
   }, [gameData]);
 
@@ -134,6 +150,12 @@ const Admin = () => {
                     onMoveChecker={handleMoveCheckers}
                     showDices={true}
                   />
+                  <button
+                    onClick={handleGameDataDeletion}
+                    className="border-2 rounded border-black hover:opacity-75 transition-opacity duration-200"
+                  >
+                    Delete Game Client Data
+                  </button>
                 </div>
                 <div className="flex flex-col gap-2 w-1/3 h-full">
                   {hints && !loading && (

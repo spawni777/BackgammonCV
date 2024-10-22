@@ -72,8 +72,8 @@ def parse_image():
 
             if not dices or len(dices) < 2:
                 dices = [
-                    {"value": random.randint(1, 6), "randomized": True},
-                    {"value": random.randint(1, 6), "randomized": True}
+                    {"value": 0, "randomized": True},
+                    {"value": 0, "randomized": True}
                 ]
 
             # Return the positions as a JSON response
@@ -225,8 +225,8 @@ def hint():
 
     if not dice_data or len(dice_data) < 2:
         dice_data = [
-            {"value": random.randint(1, 6), "randomized": True},
-            {"value": random.randint(1, 6), "randomized": True}
+            {"value": 0, "randomized": True},
+            {"value": 0, "randomized": True}
         ]
         
     dice_values = [dice['value'] for dice in dice_data]
@@ -244,7 +244,6 @@ def hint():
 def get_saved_game_data():
     repository = BackgammonRepository()
     checker_position, dices, current_player = repository.get()
-
     repository.close()
 
     return jsonify({ "checker_position": checker_position, "dices": dices, "current_player": current_player }), 200

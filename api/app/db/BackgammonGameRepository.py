@@ -49,7 +49,7 @@ class BackgammonRepository:
 
         if count == 0:
             initial_positions = [0] * 26  # 26 zeros for checker positions
-            self.update(initial_positions, [{"value": 0, "randomized": False}, {"value": 0, "randomized": False}], "player_1")
+            self.update(initial_positions, [{"value": 0, "randomized": False}, {"value": 0, "randomized": False}], "player_2")
 
     def derive_current_player(self, prev_data, new_data):
         prev_positions = prev_data['checkerPositions']
@@ -120,6 +120,24 @@ class BackgammonRepository:
 
         return checker_positions, dices, current_player
 
+    def generate_start_position(self):
+        checker_positions = {str(i): 0 for i in range(1, 25)}
+
+        # Assign checkers to the starting positions for player_1
+        checker_positions["1"] = 2  # 2 checkers for player_1
+        checker_positions["12"] = 5  # 5 checkers for player_1
+        checker_positions["17"] = 3  # 3 checkers for player_1
+        checker_positions["19"] = 5  # 5 checkers for player_1
+
+        # Assign checkers to the starting positions for player_2 (negative values)
+        checker_positions["24"] = -2  # 2 checkers for player_2
+        checker_positions["13"] = -5  # 5 checkers for player_2
+        checker_positions["8"] = -3  # 3 checkers for player_2
+        checker_positions["6"] = -5  # 5 checkers for player_2
+
+        return checker_positions
+
+
     def delete(self):
         # Delete the most recent checker positions entry
         self.cursor.execute('DELETE FROM checker_positions WHERE id = (SELECT id FROM checker_positions ORDER BY id DESC LIMIT 1)')
@@ -130,7 +148,21 @@ class BackgammonRepository:
         # Delete the most recent game state entry
         self.cursor.execute('DELETE FROM game_state WHERE id = (SELECT id FROM game_state ORDER BY id DESC LIMIT 1)')
         
+        # Commit the changes
         self.conn.commit()
+
+        # After deletion, insert default values to ensure it is reset to player_1
+        initial_positions_dict = self.generate_start_position()  # Use the generate_start_position method
+
+        # Convert the dictionary to a list format, preserving the order of the positions from 1 to 24
+        initial_positions = [initial_positions_dict[str(i)] for i in range(1, 25)]
+
+        default_dices = [{"value": 0, "randomized": False}, {"value": 0, "randomized": False}]  # Default dice state
+        default_current_player = "player_1"  # Default to player_1
+
+        # Insert the default values
+        self.update([0] + initial_positions + [0], default_dices, default_current_player)
+
 
     def close(self):
         self.conn.close()

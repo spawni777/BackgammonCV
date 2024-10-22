@@ -180,6 +180,8 @@ const BackgammonBoard = ({
     }
 
     gameData.dices.forEach((dice, index) => {
+      if (dice.value === 0) return;
+
       const diceX = startX + index * (diceSize + 10);
 
       // Draw dice rectangle
